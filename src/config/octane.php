@@ -55,6 +55,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Octane Max Requests
+    |--------------------------------------------------------------------------
+    |
+    | Restart each worker after handling this many requests to prevent memory
+    | leaks. Set to 0 to disable automatic restarts.
+    |
+    */
+
+    'max_requests' => env('OCTANE_MAX_REQUESTS', 500),
+
+    /*
+    |--------------------------------------------------------------------------
     | Octane Listeners
     |--------------------------------------------------------------------------
     |
