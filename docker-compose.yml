@@ -1,0 +1,65 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    image: apiato-swoole-app
+    container_name: apiato_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - apiato_net
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: apiato_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: "${DB_DATABASE:-apiato}"
+      POSTGRES_USER: "${DB_USERNAME:-apiato}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-secret}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-apiato}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - apiato_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: apiato_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - apiato_net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  apiato_net:
+    driver: bridge
