@@ -1,0 +1,6 @@
+{
+    "name": "apiato/authentication",
+    "description": "Authentication Container",
+    "type": "apiato-container",
+    "require": {}
+}
