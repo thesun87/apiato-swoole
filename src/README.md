@@ -1,181 +1,262 @@
-<p align="center">
-   <a href="https://github.com/apiato/apiato/actions/workflows/tests.yaml">
-      <img src="https://img.shields.io/github/actions/workflow/status/apiato/apiato/tests.yaml?label=tests" alt="tests status">
-   </a>
-   <a href="https://codecov.io/gh/apiato/apiato">
-      <img src="https://img.shields.io/codecov/c/github/apiato/apiato?token=siiyEg5AC9" alt="code coverage"/>
-   </a>
-   <a href="https://packagist.org/packages/apiato/apiato">
-      <img src="https://img.shields.io/packagist/v/apiato/apiato" alt="latest stable version">
-   </a>
-   <br>
-   <a href="https://packagist.org/packages/apiato/apiato">
-      <img src="https://img.shields.io/packagist/dt/apiato/apiato" alt="total downloads">
-   </a>
-   <a href="https://github.com/apiato/apiato">
-      <img src="https://img.shields.io/github/license/apiato/apiato" alt="license">
-   </a>
-   <a href="https://discord.gg/ryPcV4KM5k">
-      <img src="https://img.shields.io/discord/800815227839053834?logo=discord&label=chat" alt="chat">
-   </a>
-</p>
+# Apiato + Laravel Octane (Swoole)
 
-<p align="center">
-   <img src="https://github.com/apiato/documentation/blob/master/images/apiato.jpg" alt="Apiato Logo"/>
-</p>
-<h1 align="center">Apiato</h1>
-<h3 align="center">Build scalable APIs faster | Powered by PHP and Laravel</h3>
+Dự án API framework xây dựng trên [Apiato](https://apiato.io) (Porto SAP pattern) chạy với Laravel Octane + Swoole extension. Không cần cài PHP trên máy local — toàn bộ chạy qua Docker.
+
+**Stack:**
+- PHP 8.3 + Swoole extension
+- Apiato 13.x (Porto architecture)
+- Laravel Octane 2.x
+- PostgreSQL 16
+- Redis 7 (cache + queue + session)
+- Laravel Passport (OAuth2)
+- Supervisor (process manager)
 
 ---
 
-## Overview
+## Yêu cầu
 
-**Apiato** is a PHP framework built on top of Laravel, specifically designed for creating scalable, testable, API-centric applications. Utilizing the [Porto SAP](https://mahmoudz.github.io/Porto/) architectural pattern, Apiato offers a robust foundation for building complex APIs with flexibility and speed.
-
-### Key Features
-
-- **Code Generators** for faster development and streamlined API creation
-- **Documentation Generators** to easily build comprehensive API documentation
-- **API Versioning** to maintain backward compatibility across versions
-- **OAuth2.0 Authentication** for secure, standardized user authentication
-- **Role-Based Access Control** to manage user permissions effectively
-- **Pagination Support** for efficient data retrieval and navigation
-- **Data Caching** to optimize performance and reduce server load
-- **ETag Support** for optimized caching and reduced bandwidth usage
-- **Performance Profiler** to identify and improve application bottlenecks
-- **Localization** for multilingual support in global applications
-- **Social Authentication** with integrations for popular platforms
-- **Test Helpers** for building reliable, maintainable tests
-- **Multiple Response Formats** to adapt to client needs easily
-- **Query Parameters Support** for flexible data querying and filtering
-- **Hash ID Support** to secure sensitive IDs in API responses
-- **Comprehensive Documentation** for seamless onboarding and usage
-
-For a comprehensive list of features, visit the [Apiato Documentation](https://apiato.io).
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (hoặc Docker Engine + Compose plugin)
+- Không cần PHP, Composer, hay bất kỳ tool nào khác trên máy host
 
 ---
 
-## Getting Started
+## Setup lần đầu
 
-To get started with Apiato, please refer to the [Getting Started Guide](https://apiato.io/docs/getting-started/introduction) in the documentation.
+### 1. Clone repo và vào thư mục `src/`
 
----
+```bash
+git clone <repo-url>
+cd apiato-swoole
+```
 
-## Community & Support
+### 2. Copy file `.env`
 
-Join our [Discord Community](https://discord.gg/ryPcV4KM5k) for free support, discussions, and connecting with other developers using Apiato.
+```bash
+cp src/.env.example src/.env
+```
 
-If you find a bug or have a feature request, feel free to [open an issue](https://github.com/apiato/apiato/issues).
+### 3. Build và khởi động containers
 
----
+```bash
+docker compose up -d --build
+```
 
-## Contributing
+Lần đầu build mất khoảng 5–10 phút (compile Swoole extension).
 
-Thank you for considering contributing to Apiato! Contributions are welcome, whether it's documentation, bug reports, or feature suggestions. Check out our [Contribution Guide](https://apiato.io/docs/contribution-guide) for guidelines on how to get started.
+### 4. Generate App Key
 
-Please adhere to the [Code of Conduct](https://apiato.io/docs/contribution-guide#code-of-conduct) to maintain a welcoming environment for all contributors.
+```bash
+docker compose exec app php artisan key:generate
+```
 
----
+### 5. Chạy migrations và seed data
 
-## Security
+```bash
+docker compose exec app php artisan migrate
+docker compose exec app php artisan db:seed
+```
 
-If you discover a security vulnerability, please report it to [Mohammad Alavi](mailto:mohammad.alavi1990@gmail.com). Your report will be addressed promptly.
+Seed tạo tài khoản admin mặc định:
+- Email: `admin@admin.com`
+- Password: `admin`
 
----
+### 6. Cài Passport keys và tạo OAuth client
 
-## Project Maintainers
+```bash
+docker compose exec app php artisan passport:install
+docker compose exec app php artisan passport:client --password --name="Web Client" --provider=users --no-interaction
+```
 
-<table>
-  <tbody>
-     <tr>
-        <td align="center" valign="top">
-            <img width="125" height="125" src="https://github.com/mahmoudz.png?s=150">
-            <br>
-            <strong>Mahmoud Zalt</strong>
-            <br>
-            <a href="https://github.com/Mahmoudz">@mahmoudz</a>
-        </td>
-         <td align="center" valign="top">
-            <img width="125" height="125" src="https://github.com/mohammad-alavi.png?s=150">
-            <br>
-            <strong>Mohammad Alavi</strong>
-            <br>
-            <a href="https://github.com/mohammad-alavi">@Mohammad-Alavi</a>
-        </td>
-          <td align="center" valign="top">
-            <img width="125" height="125" src="https://github.com/mderis.png?s=150">
-            <br>
-            <strong>Moslem Deris</strong>
-            <br>
-            <a href="https://github.com/mderis">@mderis</a>
-          </td>
-     </tr>
-  </tbody>
-</table>
+Lấy `Client ID` và `Client Secret` từ output, cập nhật vào `src/.env`:
 
+```dotenv
+CLIENT_WEB_ID=<uuid từ output>
+CLIENT_WEB_SECRET=<secret từ output>
+```
 
-## Contributors
+Sau đó reload Octane:
 
-[![Apiato Contributors](https://opencollective.com/apiato/contributors.svg?width=890&button=false&isActive=true)](https://github.com/apiato/apiato/graphs/contributors)
-
-
-## Sponsors
-
-<!-- Listing Contributors Refference: https://docs.opencollective.com/help/collectives/collective-settings/data-export#contributor-image -->
-
-### Diamond Sponsors
-
-<p align="left">
-  <a href="https://smart.sista.ai/?utm_source=docs_apiato&utm_medium=sponsor&utm_campaign=landing_page_content" target="_blank">
-    <img src="https://raw.githubusercontent.com/laradock/laradock/master/.github/home-page-images/custom-sponsors/sista-ai-icon.png" height="165px" alt="Sista AI - Plug-and-Play AI Assistant. (www.sista.ai)" style="margin-right: 4em;">
-  </a>
-  <a href="http://laradock.io/" target="_blank">
-    <img src="https://raw.githubusercontent.com/laradock/laradock/master/DOCUMENTATION/static/img/laradock/laradock-icon.png" height="165px" alt="Laradock: Full PHP development environment on Docker.">
-  </a>
-</p>
-
-
-
-### Gold Sponsors
-
-![Gold Sponsors](https://opencollective.com/apiato/tiers/gold-sponsors.svg?avatarHeight=120&width=800&format=svg&button=false)
-
-### Silver Sponsors
-
-![Silver Sponsors](https://opencollective.com/apiato/tiers/silver-sponsors.svg?avatarHeight=90&width=800&format=svg&button=false)
-
-### Bronze Sponsors
-
-![Bronze Sponsors](https://opencollective.com/apiato/tiers/bronze-sponsors.svg?avatarHeight=65&width=800&format=svg&button=false)
-
-
-
-## Backers
-
-[![Open Collective backers](https://opencollective.com/apiato/tiers/awesome-backers.svg?width=800&avatarHeight=65&button=false&isActive=true)](https://opencollective.com/apiato#contributors)
-[![Open Collective backers](https://opencollective.com/apiato/tiers/donate.svg?width=800&avatarHeight=65&button=false&isActive=true)](https://opencollective.com/apiato#contributors)
-
-
-### Supports Us
-
-You can support us using any of the methods below:
-
-<b>1:</b> [Open Collective](https://opencollective.com/apiato) (For Sponsorships checkout Open Collective, or emails us at support@apiato.io)
-
-<b>2:</b> [Github Sponsors](https://github.com/sponsors/Mahmoudz)
-
-
-## License
-
-Apiato is open-sourced software licensed under the [MIT license](https://github.com/apiato/apiato/blob/master/LICENSE).
+```bash
+docker compose exec app php artisan octane:reload
+```
 
 ---
 
-<p align="center">
-   <strong>Made with ❤️ by the Apiato community</strong>
-</p>
+## Kiểm tra hoạt động
 
-## Acknowledgements
-Thanks to [JetBrains](https://www.jetbrains.com) for sponsoring this project with their amazing tools and IDEs.
+### API đang chạy
 
-<img style="width: 300px" src="https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.png" alt="JetBrains logo.">
+```bash
+curl -I http://localhost:8000/v1 -H "Host: localhost"
+```
+
+Phải thấy header `Server: swoole-http-server` — xác nhận Swoole đang serve, không phải php-fpm.
+
+### Đăng nhập lấy token
+
+```bash
+curl -X POST http://localhost:8000/v1/clients/web/login \
+  -H "Content-Type: application/json" \
+  -H "Host: localhost" \
+  -d '{"email":"admin@admin.com","password":"admin"}'
+```
+
+Response trả về `access_token` và `refresh_token`.
+
+### Gọi endpoint có xác thực
+
+```bash
+curl http://localhost:8000/v1/profile \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Host: localhost" \
+  -H "Accept: application/json"
+```
+
+### Hello endpoint (Porto demo)
+
+```bash
+curl http://localhost:8000/v1/hello -H "Host: localhost"
+# {"message":"Hello from Apiato + Swoole!"}
+```
+
+---
+
+## Lưu ý quan trọng về routing
+
+Apiato dùng **domain-based routing**. Biến `API_URL` trong `.env` phải là hostname không có port:
+
+```dotenv
+# ĐÚNG
+API_URL=http://localhost
+
+# SAI — routes sẽ trả về 404
+API_URL=http://localhost:8000
+```
+
+Khi gọi API từ bên ngoài container (curl, Postman, browser), thêm header:
+
+```
+Host: localhost
+```
+
+Hoặc dùng Postman với URL `http://localhost:8000/v1/...` và thêm Header `Host: localhost`.
+
+---
+
+## Các lệnh hay dùng
+
+```bash
+# Khởi động tất cả services
+docker compose up -d
+
+# Rebuild image (sau khi thay đổi Dockerfile)
+docker compose up -d --build app
+
+# Chạy artisan commands
+docker compose exec app php artisan <command>
+
+# Reload Octane workers (sau khi thêm routes/code mới)
+docker compose exec app php artisan octane:reload
+
+# Xem logs Octane
+docker compose exec app tail -f /var/log/supervisor/octane.log
+
+# Xem logs queue worker
+docker compose exec app tail -f /var/log/supervisor/queue.log
+
+# Kiểm tra trạng thái supervisor (octane + queue workers)
+docker compose exec app supervisorctl status
+
+# Vào shell container
+docker compose exec app bash
+
+# Dừng tất cả
+docker compose down
+
+# Dừng và xóa volumes (reset database)
+docker compose down -v
+```
+
+---
+
+## Cấu trúc Porto Architecture
+
+```
+src/app/
+├── Ship/                          # Shared infrastructure (base classes, configs, kernel)
+│   ├── Configs/
+│   ├── Parents/
+│   │   ├── Actions/
+│   │   ├── Controllers/
+│   │   ├── Models/
+│   │   └── ...
+│   └── ...
+└── Containers/
+    └── AppSection/
+        ├── Authentication/        # Login, logout, register, refresh token
+        ├── Authorization/         # Roles & permissions
+        ├── User/                  # User profile, CRUD
+        └── Hello/                 # Demo container (Porto pattern example)
+            ├── Actions/
+            │   └── GetHelloAction.php
+            └── UI/
+                └── API/
+                    ├── Controllers/
+                    │   └── GetHelloController.php
+                    └── Routes/
+                        └── GetHello.v1.public.php
+```
+
+### Tạo Container mới
+
+Một Container = một domain. Cấu trúc tối thiểu:
+
+```
+app/Containers/<Section>/<ContainerName>/
+├── Actions/
+│   └── <UseCaseName>Action.php
+└── UI/
+    └── API/
+        ├── Controllers/
+        │   └── <UseCaseName>Controller.php
+        └── Routes/
+            └── <UseCaseName>.v1.public.php   # public route (không cần auth)
+            └── <UseCaseName>.v1.private.php  # private route (cần auth:api)
+```
+
+Route file naming convention:
+- `.v1.public.php` — không cần authentication
+- `.v1.private.php` — cần `auth:api` middleware
+
+---
+
+## Services và ports
+
+| Service    | Container       | Port host | Port container |
+|------------|-----------------|-----------|----------------|
+| App (Octane) | `apiato_app`   | 8000      | 8000           |
+| PostgreSQL | `apiato_postgres` | 5432    | 5432           |
+| Redis      | `apiato_redis`  | 6379      | 6379           |
+
+### Kết nối database từ host
+
+```
+Host: localhost
+Port: 5432
+Database: apiato
+Username: apiato
+Password: secret
+```
+
+---
+
+## Troubleshooting
+
+| Vấn đề | Nguyên nhân | Cách fix |
+|--------|-------------|----------|
+| 404 trên mọi route | `API_URL` có port | Đổi thành `API_URL=http://localhost` |
+| Octane crash khi start | APP_KEY trống | Chạy `php artisan key:generate` |
+| Port 8000 already in use | Swoole process cũ còn giữ port | `docker compose restart app` |
+| DB connection refused | Postgres chưa healthy | Đợi hoặc kiểm tra `docker compose ps` |
+| Routes không update | Octane cache route cũ | `php artisan octane:reload` |
+| Passport 401 | CLIENT_WEB_ID/SECRET sai | Chạy lại `passport:client` và update `.env` |
