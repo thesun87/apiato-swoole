@@ -1,0 +1,81 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker-fpm/php/Dockerfile
+    image: apiato-fpm-app
+    container_name: apiato_fpm_app
+    restart: unless-stopped
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - apiato_fpm_net
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker-fpm/nginx/Dockerfile
+    image: apiato-fpm-nginx
+    container_name: apiato_fpm_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html:ro
+    depends_on:
+      - app
+    networks:
+      - apiato_fpm_net
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: apiato_fpm_postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: "${DB_DATABASE:-apiato}"
+      POSTGRES_USER: "${DB_USERNAME:-apiato}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-secret}"
+    volumes:
+      - fpm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-apiato}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - apiato_fpm_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: apiato_fpm_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - fpm_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - apiato_fpm_net
+
+volumes:
+  fpm_postgres_data:
+  fpm_redis_data:
+
+networks:
+  apiato_fpm_net:
+    driver: bridge
