@@ -19,6 +19,11 @@ services:
         condition: service_healthy
     networks:
       - apiato_net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 3G
 
   postgres:
     image: postgres:16-alpine
