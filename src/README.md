@@ -260,3 +260,56 @@ Password: secret
 | DB connection refused | Postgres chưa healthy | Đợi hoặc kiểm tra `docker compose ps` |
 | Routes không update | Octane cache route cũ | `php artisan octane:reload` |
 | Passport 401 | CLIENT_WEB_ID/SECRET sai | Chạy lại `passport:client` và update `.env` |
+
+---
+
+## PHP-FPM + Nginx Stack (Alternative Deployment)
+
+Stack độc lập hoàn toàn với Swoole. Dùng PHP-FPM làm application server và Nginx làm web server.
+
+### Cấu trúc
+
+```
+docker-fpm/              # Tất cả config của stack FPM
+├── php/                 # PHP-FPM image + supervisor + config
+└── nginx/               # Nginx image + config
+docker-compose.fpm.yml   # File compose độc lập
+```
+
+### Khởi động
+
+```bash
+# Build và start
+docker compose -f docker-compose.fpm.yml up -d --build
+
+# Migrations (lần đầu)
+docker compose -f docker-compose.fpm.yml exec app php artisan migrate
+
+# Passport setup (lần đầu)
+docker compose -f docker-compose.fpm.yml exec app php artisan passport:install
+
+# Stop
+docker compose -f docker-compose.fpm.yml down
+```
+
+### Services và Ports
+
+| Service    | Container              | Port host | Port container |
+|------------|------------------------|-----------|----------------|
+| Nginx      | `apiato_fpm_nginx`     | 8080      | 80             |
+| PHP-FPM    | `apiato_fpm_app`       | —         | 9000 (internal)|
+| PostgreSQL | `apiato_fpm_postgres`  | 5433      | 5432           |
+| Redis      | `apiato_fpm_redis`     | 6380      | 6379           |
+
+Ports khác với Swoole stack để có thể chạy song song nếu cần.
+
+### So sánh với Swoole
+
+| | Swoole (`docker-compose.yml`) | PHP-FPM (`docker-compose.fpm.yml`) |
+|---|---|---|
+| Entry point | `docker compose up` | `docker compose -f docker-compose.fpm.yml up` |
+| PHP server | Laravel Octane + Swoole | PHP-FPM |
+| Web server | Built-in Octane (port 8000) | Nginx (port 8080) |
+| Config dir | `docker/` | `docker-fpm/` |
+| Data volumes | `postgres_data`, `redis_data` | `fpm_postgres_data`, `fpm_redis_data` |
+| Network | `apiato_net` | `apiato_fpm_net` |
